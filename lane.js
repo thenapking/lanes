@@ -1,9 +1,15 @@
 class Lane {
-  constructor(start, end, n, width) {
+  constructor(start, end, n, width, speed) {
     this.start = start;
     this.end = end;
     this.n = n;
     this.width = width;
+    this.agents = [];
+    this.previous = null;
+    this.next = null;
+    this.neighbours = [];
+    this.direction = end.position.y >= start.position.y ? 1 : -1;
+    this.speed = speed || 1; 
     this.construct();
   }
   
@@ -22,14 +28,18 @@ class Lane {
     this.d = this.normal_at(this.n).mult(-this.width).add(this.points[this.n]);
   }
 
+  update(){
+    this.agents.sort((a, b) => a.index - b.index);
+  }
+
   position_at(i){
     return this.points[i];
   }
 
-  // TODO the normal will be undefined for the last point, need to handle it
   normal_at(i){
-    let p0 = this.points[i];
-    let p1 = this.points[i + 1];
+    const segmentIndex = Math.min(Math.max(i, 0), this.points.length - 2);
+    let p0 = this.points[segmentIndex];
+    let p1 = this.points[segmentIndex + 1];
     let dir = p5.Vector.sub(p1, p0);
     return createVector(-dir.y, dir.x).normalize();
   }
