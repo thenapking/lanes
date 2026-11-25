@@ -1,58 +1,40 @@
 class Lane {
-  constructor(start, end, n, width, speed) {
-    this.start = start;
-    this.end = end;
-    this.n = n;
-    this.width = width;
+  constructor(source, destination, speed) {
+    this.source = source;
+    this.destination = destination;
+    this.max_index = LANE_MAX_INDEX;
+    this.width = LANE_WIDTH;
+    this.speed = speed || 1;
+
     this.agents = [];
-    this.previous = null;
-    this.next = null;
     this.neighbours = [];
-    this.direction = end.position.y >= start.position.y ? 1 : -1;
-    this.speed = speed || 1; 
-    this.construct();
-  }
-  
-  construct() {
-    this.points = [];
-    for (let i = 0; i <= this.n; i++) {
-      let t = i / this.n;
-      let x = lerp(this.start.position.x, this.end.position.x, t);
-      let y = lerp(this.start.position.y, this.end.position.y, t);
-      this.points.push(createVector(x, y));
-    }
-
-    this.a = this.normal_at(0).mult(this.width).add(this.points[0]);
-    this.b = this.normal_at(0).mult(-this.width).add(this.points[0]);
-    this.c = this.normal_at(this.n).mult(this.width).add(this.points[this.n]);
-    this.d = this.normal_at(this.n).mult(-this.width).add(this.points[this.n]);
+    
+    this.travel_direction = destination.position.y >= source.position.y ? 1 : -1;
+    
+    this.geometry = this.geometry();
+    this.shape = new Shape(this);
   }
 
-  update(){
-    this.agents.sort((a, b) => a.index - b.index);
+  // when an agent delivers its cargo it is reset to the start of the lane
+  // so we need to sort the agents after each move
+  update() {
+    this.agents.sort((first_agent, second_agent) =>
+      first_agent.index - second_agent.index
+    );
   }
 
-  position_at(i){
-    return this.points[i];
-  }
+  geometry(){
+    const lane_offset = this.source.position.x - curve.centre_x;
 
-  normal_at(i){
-    const segmentIndex = Math.min(Math.max(i, 0), this.points.length - 2);
-    let p0 = this.points[segmentIndex];
-    let p1 = this.points[segmentIndex + 1];
-    let dir = p5.Vector.sub(p1, p0);
-    return createVector(-dir.y, dir.x).normalize();
+    return new LaneGeometry(
+      curve.geometry.positions,
+      curve.geometry.normals,
+      lane_offset,
+      this.travel_direction
+    );
   }
 
   draw() {
-    stroke(0);
-    noFill();
-
-    beginShape();
-      vertex(this.a.x, this.a.y);
-      vertex(this.b.x, this.b.y);
-      vertex(this.d.x, this.d.y);
-      vertex(this.c.x, this.c.y);
-    endShape(CLOSE);
+    this.shape.draw();
   }
 }

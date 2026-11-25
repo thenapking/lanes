@@ -1,21 +1,23 @@
 class Destination {
   constructor(x, y) {
     this.position = createVector(x, y);
-    this.zealot = random() < 0.2;
+    this.zealot = false
     this.value = 0;
+    this.illnesses = 0;
   }
 
-  receive_cargo(cargo) {
+  receive_cargo(cargo, agent) {
+    if (cargo === 0) {
+      this.illnesses++;
+    }
+
     if (this.zealot) return;
+
+    // learn from the agents
+    this.value = lerp(this.value, agent.value, HUMAN_SOCIAL_STEP);
 
     if (cargo === 0) {
       this.value = lerp(this.value, 1, EPISTEMIC_RATE);
     }
-  }
-
-  draw() {
-    fill(0)
-    noStroke()
-    ellipse(this.position.x, this.position.y, 10, 10);
   }
 }
