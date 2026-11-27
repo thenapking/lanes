@@ -4,7 +4,7 @@ class Agent {
     this.index = index || 0;
     this.length_indices = length_indices;
     this.value = random();
-    this.collect();
+    this.cargo = index < this.lane.max_index * 0.75 ? 1 :  random();
     this.shape = new Shape(this);
   }
 
